@@ -28,6 +28,20 @@ int main( )
     //*/x=///*
     i+j;
 
+  // From the D specification: https://dlang.org/spec/lex.html#comment
+  x = /+ // +/ 1;
+  x = /+ "+/" +/ 1";
+  x = /+ /* +/ */ 3;
+
+  // Made up.
+  /+ singly nested comment +/
+  /+++/
+  /+ 1 /+ 2 +/ 1 +/
+  /+ 1 /+ 2 /+ 3 +/ 2 +/ 1 +/
+  /+ 1 /+ 2 /+ 3 +/ 2 /+ 3 +/ 2 +/ 1 +/
+  /+ 1 //+ 2 ++/ 1 +/
+  /+ 1 /+ 2 +/ 1 +/
+
   return 0;
 }
 
