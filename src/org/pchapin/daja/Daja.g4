@@ -20,16 +20,18 @@ module
 // ----------------------
 
 declaration
-    : basic_type init_declarator (COMMA init_declarator)* SEMI;
+    : basic_type (array_declarator)* init_declarator (COMMA init_declarator)* SEMI;
 
 basic_type
     : BOOL
     | INT
     | DOUBLE;
 
+array_declarator
+    : LBRACKET expression RBRACKET;
+
 init_declarator
-    : IDENTIFIER (EQUALS expression)?
-    | IDENTIFIER LBRACKET expression RBRACKET;  // Arrays cannot be initialized (for now).
+    : IDENTIFIER (EQUALS expression)?;
 
 // Statement grammar...
 // --------------------
@@ -77,7 +79,7 @@ multiply_expression
 
 postfix_expression
     : primary_expression
-    | postfix_expression LBRACE expression RBRACE;
+    | postfix_expression array_declarator;
 
 primary_expression
     : IDENTIFIER

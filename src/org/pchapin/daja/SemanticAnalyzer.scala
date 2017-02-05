@@ -1,7 +1,11 @@
 package org.pchapin.daja
 
 import org.antlr.v4.runtime.tree.TerminalNode
-import org.pchapin.daja.DajaParser.{Add_expressionContext, Primary_expressionContext}
+import org.pchapin.daja.DajaParser.{
+  Add_expressionContext,
+  Postfix_expressionContext,
+  Primary_expressionContext
+}
 
 import scala.collection.JavaConverters._
 
@@ -36,18 +40,16 @@ class SemanticAnalyzer(
     }
     for (initDeclarator <- initDeclarators) {
       val identifierName = initDeclarator.IDENTIFIER.getText
-
-      // Are we dealing with an array declaration?
-      if (initDeclarator.LBRACKET != null) {
+      if (ctx.array_declarator.size == 0) {
+        // We're dealing with the declaration of a single variable.
+        // TODO: Type check the initialization expression (if present).
+        symbolTable.addObjectName(identifierName, basicTypeRep)
+      } else {
+        // We're dealing with an array declaration.
         // TODO: Type check the array dimension expression.
         // TODO: Verify that the array dimension is a constant expression.
         // TODO: Arrange to add the size of the array to the symbol table.
         symbolTable.addObjectName(identifierName, TypeRep.ArrayRep(basicTypeRep))
-      }
-      // ... otherwise it is a simple variable declaration.
-      else {
-        // TODO: Type check the initialization expression (if present).
-        symbolTable.addObjectName(identifierName, basicTypeRep)
       }
     }
     TypeRep.NoTypeRep
@@ -97,6 +99,37 @@ class SemanticAnalyzer(
     TypeRep.NoTypeRep
   }
 
+  override def visitPostfix_expression(ctx: Postfix_expressionContext): TypeRep.Rep = {
+    // If array braces are absent...
+    if (ctx.primary_expression != null) {
+      val primaryExpressionType = visit(ctx.primary_expression)
+      return primaryExpressionType
+    }
+
+    // Array braces are present. If the term to the left of the braces isn't an array type,
+    // then...
+    val postfixExpressionType = visit(ctx.postfix_expression)
+    if (!postfixExpressionType.isInstanceOf[TypeRep.ArrayRep]){
+      reporter.reportError(
+        ctx.array_declarator.LBRACKET.getSymbol.getLine,
+        ctx.array_declarator.LBRACKET.getSymbol.getCharPositionInLine + 1,
+        f"${ctx.postfix_expression.getText} is being accessed as if it is an array, but it " +
+        f"has type $postfixExpressionType"
+      )
+    }
+
+    // If the expression inside the array braces isn't an integer, then...
+    val arrayDeclaratorExpressionType = visit(ctx.array_declarator.expression)
+    if (arrayDeclaratorExpressionType != TypeRep.IntRep) {
+      reporter.reportError(
+        ctx.array_declarator.LBRACKET.getSymbol.getLine,
+        ctx.array_declarator.LBRACKET.getSymbol.getCharPositionInLine + 1,
+        f"${ctx.array_declarator.getText} must contain an integer expression, but it " +
+        f"contains an expression of type $arrayDeclaratorExpressionType"
+      )
+    }
+    return postfixExpressionType
+  }
 
   override def visitPrimary_expression(ctx: Primary_expressionContext): TypeRep.Rep = {
     if (ctx.LPARENS == null) {

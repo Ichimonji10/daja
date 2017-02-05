@@ -1,0 +1,31 @@
+// This is a simple test file for Daja level 0.
+
+void main( )
+{
+    double myDouble;
+    double[10] doubleArr1;
+    int myInt;
+    int[10] intArr1;
+    int[5][5] intArr2;
+
+    // Verify that simple types can be accessed.
+    myInt;
+    myDouble;
+
+    // Verify that arrays of varying types can be accessed.
+    myInt = intArr1[3];
+    myDouble = doubleArr1[0];
+
+    // Verify that multi-dimensional arrays can be accessed.
+    myInt = intArr2[2][4];
+
+    // Verify that arrays may be accessed with expressions.
+    myInt = intArr1[1 + 1];
+
+    // Verify that array accessors (like `[5]`) must be attached to array types.
+    myInt[0];
+    myInt[1][2];
+
+    // Verify that arrays indices must be integers.
+    myInt = intArr1[myDouble];
+}
