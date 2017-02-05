@@ -64,18 +64,37 @@ class SemanticAnalyzer(
 
 
   override def visitAdd_expression(ctx: Add_expressionContext): TypeRep.Rep = {
+    // Is multiplication or division happening? If so, defer to another method.
     val multExpressionType = visit(ctx.multiply_expression)
     if (ctx.add_expression == null) {
-      multExpressionType
+      return multExpressionType
     }
-    else {
-      val addExpressionType = visit(ctx.add_expression)
-      if (addExpressionType == multExpressionType)
-        addExpressionType
-      else
-        // TODO: Deal with implicit type conversions!
-        TypeRep.NoTypeRep
+
+    // Addition or subtraction is happening.
+    val addExpressionType = visit(ctx.add_expression)
+    if (addExpressionType == multExpressionType) {
+      return addExpressionType  // arbitrary choice
     }
+
+    // The types of the two operands differ. Try implicit type conversions.
+    val types = List(addExpressionType, multExpressionType)
+    if (types.contains(TypeRep.DoubleRep)) {
+      return TypeRep.DoubleRep
+    } else if (types.contains(TypeRep.IntRep)) {
+      return TypeRep.IntRep
+    }
+
+    // Type conversion failed. We've encountered an error.
+    var operand = ctx.MINUS()
+    if (operand == null) {
+      operand = ctx.PLUS()
+    }
+    reporter.reportError(
+      operand.getSymbol.getLine,
+      operand.getSymbol.getCharPositionInLine + 1,
+      f"Operands are incompatible: $addExpressionType $operand $multExpressionType"
+    )
+    TypeRep.NoTypeRep
   }
 
 
@@ -126,3 +145,5 @@ class SemanticAnalyzer(
   }
 
 }
+
+// vim:set ts=2 sw=2 et:
