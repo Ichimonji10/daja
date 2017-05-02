@@ -48,8 +48,9 @@ block_statement
     : LBRACE (declaration|statement)* RBRACE;
 
 if_statement
-    : IF LPARENS expression RPARENS block_statement
-    | IF LPARENS expression RPARENS block_statement ELSE block_statement;
+    : IF LPARENS expression RPARENS block_statement # ifThenStatement
+    | IF LPARENS expression RPARENS block_statement ELSE block_statement # ifThenElseStatement
+    ;
 
 while_statement
     : WHILE LPARENS expression RPARENS block_statement;

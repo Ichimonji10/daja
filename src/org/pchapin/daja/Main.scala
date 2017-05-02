@@ -52,7 +52,7 @@ object Main {
       val CFG = CFGBuilder.optimize(cfgBuilder.visit(tree))
 
       // Analyze program for the use of uninitialized variables.
-      Analysis.liveness(CFG)
+      Analysis.liveness(parser, CFG)
       val ControlFlowGraph(entryBlock, _, _) = CFG
 
       mode match {
